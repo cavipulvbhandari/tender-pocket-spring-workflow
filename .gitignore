@@ -24,3 +24,5 @@ tenders.db
 
 # Logs
 *.log
+client-package/
+public/documents/
