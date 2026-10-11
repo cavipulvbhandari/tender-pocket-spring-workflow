@@ -474,7 +474,14 @@ public class TenderController {
 
         Tender tender = opt.get();
         String requestedVerStatus = (String) (body.containsKey("verification_status") ? body.get("verification_status") : body.get("verificationStatus"));
-        if (List.of("Pending", "Approved").contains(requestedVerStatus) && !isBidDocsProvided(tender)) {
+        // The null check must come first. List.of(...) returns an immutable list whose
+        // contains(null) throws NullPointerException rather than returning false, so this guard
+        // threw a 500 for every PATCH whose body carried no verification_status - which is most
+        // of them, including the Accept button's {"status":"Participating"} and Decline's
+        // {"status":"Not Participating"}.
+        if (requestedVerStatus != null
+                && List.of("Pending", "Approved").contains(requestedVerStatus)
+                && !isBidDocsProvided(tender)) {
             return ResponseEntity.badRequest().body(Map.of("success", false,
                     "error", "Generated bid documents are required before submitting or approving document verification."));
         }
